@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grandad Photo Gallery</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --text: #1e2a35;
+      --muted: #5f6b76;
+      --accent: #0b6aa2;
+      --accent-hover: #095883;
+      --border: #dde4ea;
+      --shadow: 0 8px 24px rgba(15, 32, 46, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: linear-gradient(165deg, #edf2f7, #f9fbfd 50%, #e6eef5);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      width: min(1300px, 96vw);
+      margin: 24px auto 40px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+    }
+
+    .subtitle {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 0.95rem;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 8px;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      cursor: zoom-in;
+      display: block;
+      background: #d7e0e8;
+    }
+
+    .meta {
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .name {
+      margin: 0;
+      font-size: 0.84rem;
+      color: #2c3a46;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text);
+      background: #fff;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .btn.primary {
+      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .btn:hover {
+      filter: brightness(0.98);
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 14, 20, 0.86);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox-inner {
+      position: relative;
+      width: min(95vw, 1400px);
+      max-height: 94vh;
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .lightbox img {
+      max-width: 100%;
+      max-height: 82vh;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+      background: #111;
+      transition: transform 0.2s ease;
+    }
+
+    .lightbox-caption {
+      color: #f0f3f6;
+      font-size: 0.95rem;
+      text-align: center;
+      word-break: break-word;
+    }
+
+    .close {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 50%;
+      background: #fff;
+      color: #12202b;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      color: #10202d;
+      cursor: pointer;
+      font-size: 1.5rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .nav:hover {
+      background: #fff;
+    }
+
+    .nav.prev {
+      left: -6px;
+    }
+
+    .nav.next {
+      right: -6px;
+    }
+
+    .lightbox-actions {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .lightbox-btn {
+      border: 1px solid #ccd8e3;
+      background: #ffffff;
+      color: #12202b;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .lightbox-btn:hover {
+      filter: brightness(0.97);
+    }
+
+    .hint {
+      color: #cad8e3;
+      font-size: 0.83rem;
+    }
+
+    @media (max-width: 680px) {
+      .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+      }
+
+      .meta {
+        padding: 8px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .nav {
+        width: 38px;
+        height: 38px;
+      }
+
+      .nav.prev {
+        left: 2px;
+      }
+
+      .nav.next {
+        right: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Grandad Photo Gallery</h1>
+    <p class="subtitle">Click a photo to enlarge it. Use Download to save the original file.</p>
+
+    <div class="toolbar">
+      <span class="count" id="count"></span>
+    </div>
+
+    <section class="gallery" id="gallery"></section>
+  </main>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-inner">
+      <button class="nav prev" id="prevBtn" aria-label="Previous photo">&#10094;</button>
+      <button class="nav next" id="nextBtn" aria-label="Next photo">&#10095;</button>
+      <button class="close" id="closeBtn" aria-label="Close">&times;</button>
+      <img id="lightboxImage" alt="Enlarged photo" />
+      <div class="lightbox-actions">
+        <button class="lightbox-btn" id="rotateBtn" type="button" aria-label="Rotate clockwise">Rotate 90°</button>
+      </div>
+      <div class="lightbox-caption" id="caption"></div>
+      <div class="hint">Use arrows or keyboard Left/Right. Press Esc or click outside to close.</div>
+    </div>
+  </div>
+
+  <script>
+    const imageFolder = "photos/";
+    const images = [
+      "DSCF0399.JPG",
+      "DSCF0400.JPG",
+      "DSCF0450.JPG",
+      "DSCF0481.JPG",
+      "DSCF0482.JPG",
+      "DSCF0483.JPG",
+      "DSCF0484.JPG",
+      "DSCF0486.JPG",
+      "DSCF1599.jpg",
+      "DSCF1604.jpg",
+      "DSCF1619.jpg",
+      "DSCF1620.jpg",
+      "DSCF3685.jpg",
+      "DSCF3712.jpg",
+      "DSCF3718.jpg",
+      "DSCF3719.jpg"
+    ];
+
+    const gallery = document.getElementById("gallery");
+    const count = document.getElementById("count");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImage = document.getElementById("lightboxImage");
+    const caption = document.getElementById("caption");
+    const closeBtn = document.getElementById("closeBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const rotateBtn = document.getElementById("rotateBtn");
+    let currentIndex = -1;
+    let currentRotation = 0;
+
+    function getImagePath(fileName) {
+      return `${imageFolder}${fileName}`;
+    }
+
+    function applyRotation() {
+      lightboxImage.style.transform = `rotate(${currentRotation}deg)`;
+    }
+
+    function showImage(index) {
+      currentIndex = (index + images.length) % images.length;
+      const fileName = images[currentIndex];
+      lightboxImage.src = getImagePath(fileName);
+      caption.textContent = fileName;
+      currentRotation = 0;
+      applyRotation();
+    }
+
+    function openLightbox(index) {
+      showImage(index);
+      lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+    }
+
+    function showPrevious() {
+      showImage(currentIndex - 1);
+    }
+
+    function showNext() {
+      showImage(currentIndex + 1);
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+      lightboxImage.src = "";
+      currentRotation = 0;
+      applyRotation();
+      currentIndex = -1;
+    }
+
+    images.forEach((fileName, index) => {
+      const card = document.createElement("article");
+      card.className = "card";
+
+      const img = document.createElement("img");
+      img.className = "thumb";
+      img.src = getImagePath(fileName);
+      img.alt = fileName;
+      img.loading = "lazy";
+      img.addEventListener("click", () => openLightbox(index));
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+
+      const name = document.createElement("p");
+      name.className = "name";
+      name.title = fileName;
+      name.textContent = fileName;
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const downloadLink = document.createElement("a");
+      downloadLink.className = "btn primary";
+      downloadLink.href = getImagePath(fileName);
+      downloadLink.download = fileName;
+      downloadLink.textContent = "Download";
+
+      actions.append(downloadLink);
+      meta.append(name, actions);
+      card.append(img, meta);
+      gallery.append(card);
+    });
+
+    count.textContent = `${images.length} photos`;
+
+    closeBtn.addEventListener("click", closeLightbox);
+    prevBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      showPrevious();
+    });
+    nextBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      showNext();
+    });
+    rotateBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      currentRotation = (currentRotation + 90) % 360;
+      applyRotation();
+    });
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox) {
+        closeLightbox();
+      }
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (!lightbox.classList.contains("open")) {
+        return;
+      }
+
+      if (event.key === "Escape") {
+        closeLightbox();
+      } else if (event.key === "ArrowLeft") {
+        showPrevious();
+      } else if (event.key === "ArrowRight") {
+        showNext();
+      }
+    });
+  </script>
+</body>
+</html>
