@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grandad Photo Gallery</title>
+  <title>Photo Gallery</title>
   <style>
     :root {
       --bg: #f4f6f8;
@@ -161,14 +161,22 @@
       justify-items: center;
     }
 
+    .lightbox-img-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: min(95vw, 1400px);
+      height: 74vh;
+    }
+
     .lightbox img {
       max-width: 100%;
-      max-height: 82vh;
+      max-height: 74vh;
       object-fit: contain;
       border-radius: 10px;
       box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
       background: #111;
-      transition: transform 0.2s ease;
+      transition: transform 0.3s ease;
     }
 
     .lightbox-caption {
@@ -191,6 +199,7 @@
       cursor: pointer;
       font-size: 1.2rem;
       line-height: 1;
+      z-index: 10;
     }
 
     .nav {
@@ -208,6 +217,7 @@
       line-height: 1;
       display: grid;
       place-items: center;
+      z-index: 10;
     }
 
     .nav:hover {
@@ -278,11 +288,12 @@
 </head>
 <body>
   <main class="wrap">
-    <h1>Grandad Photo Gallery</h1>
+    <h1>Grandad John</h1>
     <p class="subtitle">Click a photo to enlarge it. Use Download to save the original file.</p>
 
     <div class="toolbar">
       <span class="count" id="count"></span>
+      <button class="btn primary" id="downloadAllBtn">&#8659; Download All</button>
     </div>
 
     <section class="gallery" id="gallery"></section>
@@ -293,7 +304,9 @@
       <button class="nav prev" id="prevBtn" aria-label="Previous photo">&#10094;</button>
       <button class="nav next" id="nextBtn" aria-label="Next photo">&#10095;</button>
       <button class="close" id="closeBtn" aria-label="Close">&times;</button>
-      <img id="lightboxImage" alt="Enlarged photo" />
+      <div class="lightbox-img-wrap" id="lightboxImgWrap">
+        <img id="lightboxImage" alt="Enlarged photo" />
+      </div>
       <div class="lightbox-actions">
         <button class="lightbox-btn" id="rotateBtn" type="button" aria-label="Rotate clockwise">Rotate 90°</button>
       </div>
@@ -320,18 +333,49 @@
       "DSCF3685.jpg",
       "DSCF3712.jpg",
       "DSCF3718.jpg",
-      "DSCF3719.jpg"
+      "DSCF3719.jpg",
+      "IMG_0413.jpg",
+      "IMG_0418.JPG",
+      "IMG_0419.JPG",
+      "IMG_0420.jpg",
+      "IMG_0427.jpg",
+      "IMG_0428.JPG",
+      "IMG_0431.JPG",
+      "IMG_0434.jpg",
+      "IMG_0435.JPG",
+      "IMG_0436.jpg",
+      "IMG_0438.JPG",
+      "IMG_0439.jpg",
+      "IMG_0441.jpg",
+      "IMG_0442.JPG",
+      "IMG_0666.JPG",
+      "IMG_0673.JPG",
+      "IMG_0750.JPG",
+      "IMG_0777.JPG",
+      "IMG_0780.JPG",
+      "IMG_0782.JPG",
+      "IMG_0944.JPG",
+      "IMG_0945.JPG",
+      "IMG_0959.JPG",
+      "IMG_0964.JPG",
+      "IMG_0969.JPG",
+      "IMG_0980.JPG",
+      "IMG_0986.JPG",
+      "IMG_0987.JPG",
+      "IMG_0988.JPG"
     ];
 
     const gallery = document.getElementById("gallery");
     const count = document.getElementById("count");
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
+    const lightboxImgWrap = document.getElementById("lightboxImgWrap");
     const caption = document.getElementById("caption");
     const closeBtn = document.getElementById("closeBtn");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
     const rotateBtn = document.getElementById("rotateBtn");
+    const downloadAllBtn = document.getElementById("downloadAllBtn");
     let currentIndex = -1;
     let currentRotation = 0;
 
@@ -340,7 +384,18 @@
     }
 
     function applyRotation() {
-      lightboxImage.style.transform = `rotate(${currentRotation}deg)`;
+      const isTransposed = currentRotation % 180 !== 0;
+      lightboxImage.style.transform = "";
+      if (isTransposed) {
+        const containerW = lightboxImgWrap.offsetWidth;
+        const containerH = lightboxImgWrap.offsetHeight;
+        const rw = lightboxImage.offsetWidth;
+        const rh = lightboxImage.offsetHeight;
+        const scale = Math.min(containerW / rh, containerH / rw, 1);
+        lightboxImage.style.transform = `rotate(${currentRotation}deg) scale(${scale})`;
+      } else {
+        lightboxImage.style.transform = `rotate(${currentRotation}deg)`;
+      }
     }
 
     function showImage(index) {
@@ -429,6 +484,19 @@
       if (event.target === lightbox) {
         closeLightbox();
       }
+    });
+
+    downloadAllBtn.addEventListener("click", () => {
+      images.forEach((fileName, i) => {
+        setTimeout(() => {
+          const a = document.createElement("a");
+          a.href = getImagePath(fileName);
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }, i * 300);
+      });
     });
 
     window.addEventListener("keydown", (event) => {
