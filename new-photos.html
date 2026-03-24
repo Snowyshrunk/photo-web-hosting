@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Photos Gallery</title>
+  <style>
+    :root {
+      --bg: #f1f3f5;
+      --panel: #ffffff;
+      --text: #1e2a35;
+      --muted: #5f6b76;
+      --accent: #0b6aa2;
+      --accent-hover: #095883;
+      --border: #dde4ea;
+      --shadow: 0 8px 24px rgba(15, 32, 46, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      width: min(1300px, 96vw);
+      margin: 24px auto 40px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+    }
+
+    .subtitle {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+      flex: 1 1 560px;
+      min-width: 320px;
+      margin-left: 0;
+      align-items: stretch;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 0.95rem;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 8px;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      cursor: zoom-in;
+      display: block;
+      background: #d7e0e8;
+    }
+
+    .meta {
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .name {
+      margin: 0;
+      font-size: 0.84rem;
+      color: #2c3a46;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text);
+      background: #fff;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .btn.navlink {
+      flex: 0 0 auto;
+      min-width: 230px;
+      padding: 12px 18px;
+      font-size: 0.97rem;
+      border: 2px solid #b7c7d3;
+      background: #ffffff;
+      color: #173145;
+      box-shadow: 0 6px 14px rgba(30, 42, 53, 0.12);
+    }
+
+    .btn.page-switch {
+      flex: 1 1 280px;
+      width: auto;
+    }
+
+    .btn.navlink:hover {
+      filter: none;
+      background: #f6f9fc;
+      border-color: #9eb5c5;
+      transform: translateY(-1px);
+    }
+
+    .btn.toolbar-download {
+      flex: 0 0 auto;
+      min-width: 170px;
+      padding: 12px 16px;
+      font-size: 0.92rem;
+    }
+
+    .bottom-page-nav {
+      display: flex;
+      justify-content: center;
+      margin: 18px 0 0;
+    }
+
+    .btn.primary {
+      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .btn:hover {
+      filter: brightness(0.98);
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 14, 20, 0.86);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox-inner {
+      position: relative;
+      width: min(95vw, 1400px);
+      max-height: 94vh;
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .lightbox-img-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: min(95vw, 1400px);
+      height: 74vh;
+    }
+
+    .lightbox img {
+      max-width: 100%;
+      max-height: 74vh;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+      background: #111;
+      transition: transform 0.3s ease;
+    }
+
+    .lightbox-caption {
+      color: #f0f3f6;
+      font-size: 0.95rem;
+      text-align: center;
+      word-break: break-word;
+    }
+
+    .close {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 50%;
+      background: #fff;
+      color: #12202b;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+      z-index: 10;
+    }
+
+    .nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      color: #10202d;
+      cursor: pointer;
+      font-size: 1.5rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      z-index: 10;
+    }
+
+    .nav:hover {
+      background: #fff;
+    }
+
+    .nav.prev {
+      left: -6px;
+    }
+
+    .nav.next {
+      right: -6px;
+    }
+
+    .lightbox-actions {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .lightbox-btn {
+      border: 1px solid #ccd8e3;
+      background: #ffffff;
+      color: #12202b;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .lightbox-btn:hover {
+      filter: brightness(0.97);
+    }
+
+    .hint {
+      color: #cad8e3;
+      font-size: 0.83rem;
+    }
+
+    @media (max-width: 680px) {
+      .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+      }
+
+      .meta {
+        padding: 8px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .toolbar-actions {
+        width: 100%;
+        margin-left: 0;
+        flex-direction: column;
+      }
+
+      .btn.navlink,
+      .btn.toolbar-download {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .btn.page-switch {
+        width: 100%;
+      }
+
+      .nav {
+        width: 38px;
+        height: 38px;
+      }
+
+      .nav.prev {
+        left: 2px;
+      }
+
+      .nav.next {
+        right: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Grandad John - New Photos</h1>
+    <p class="subtitle">This page uses the photos2 folder. Click a photo to enlarge it and use Download to save.</p>
+
+    <div class="toolbar">
+      <span class="count" id="count"></span>
+      <div class="toolbar-actions">
+        <a class="btn navlink page-switch" href="index.html">Page 1</a>
+        <button class="btn primary toolbar-download" id="downloadAllBtn">&#8659; Download All</button>
+      </div>
+    </div>
+
+    <section class="gallery" id="gallery"></section>
+    <div class="bottom-page-nav">
+      <a class="btn navlink page-switch" href="index.html">Page 1</a>
+    </div>
+  </main>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-inner">
+      <button class="nav prev" id="prevBtn" aria-label="Previous photo">&#10094;</button>
+      <button class="nav next" id="nextBtn" aria-label="Next photo">&#10095;</button>
+      <button class="close" id="closeBtn" aria-label="Close">&times;</button>
+      <div class="lightbox-img-wrap" id="lightboxImgWrap">
+        <img id="lightboxImage" alt="Enlarged photo" />
+      </div>
+      <div class="lightbox-actions">
+        <button class="lightbox-btn" id="rotateBtn" type="button" aria-label="Rotate clockwise">Rotate 90°</button>
+      </div>
+      <div class="lightbox-caption" id="caption"></div>
+      <div class="hint">Use arrows or keyboard Left/Right. Press Esc or click outside to close.</div>
+    </div>
+  </div>
+
+  <script>
+    const imageFolder = "photos2/";
+    const images = [
+      "2007_0304padstow0075.JPG",
+      "2007_0304padstow0078.JPG",
+      "2007_0304padstow0081.JPG",
+      "2007_0304padstow0085.JPG",
+      "2007_0304padstow0086.JPG",
+      "2008_011419th-Jan-3rd-Feb-080080.JPG",
+      "2008_012919th-Jan-3rd-Feb-080088.JPG",
+      "2008_0822Xmas20080003.JPG",
+      "2009_0615June20090038.JPG",
+      "2010_0125Jan20100046.JPG",
+      "20161228_120257.jpg",
+      "20161228_121427.jpg",
+      "20161228_121441.jpg",
+      "20161228_121451.jpg",
+      "20161228_124849.jpg",
+      "20161228_125344.jpg",
+      "DSCF0012.JPG",
+      "DSCF0103.JPG",
+      "DSCF0176.JPG",
+      "DSCF0180.JPG",
+      "DSCF0199.JPG",
+      "DSCF0287.JPG",
+      "DSCF0297.JPG",
+      "DSCF0333.JPG",
+      "DSCF0344.JPG",
+      "DSCF0352.JPG",
+      "DSCF0353.JPG",
+      "DSCF0393.JPG",
+      "DSCF0402.JPG",
+      "DSCF0407.JPG",
+      "DSCF0408.JPG",
+      "DSCF0409.JPG",
+      "DSCF0412.JPG",
+      "DSCF0424.JPG",
+      "DSCF0447.JPG",
+      "DSCF0456.JPG",
+      "DSCF0471.JPG",
+      "DSCF0481.JPG",
+      "DSCF0482.JPG",
+      "DSCF0483.JPG",
+      "DSCF0490.JPG",
+      "DSCF0496.JPG",
+      "DSCF0868.JPG",
+      "DSCF1393.JPG",
+      "DSCF1414.JPG",
+      "DSCF1415.JPG",
+      "DSCF1417.JPG",
+      "DSCF1467.JPG",
+      "DSCF1475.JPG",
+      "DSCF1513.JPG",
+      "DSCF1620.JPG",
+      "DSCF1637.JPG",
+      "DSCF1663.JPG",
+      "DSCF1667.JPG",
+      "DSCF1689.JPG",
+      "DSCF1705.JPG",
+      "DSCF1711.JPG",
+      "DSCF1743.JPG",
+      "DSCF1912.JPG",
+      "DSCF1929.JPG",
+      "DSCF1967.JPG",
+      "DSCF2008.JPG",
+      "DSCF2025.JPG",
+      "DSCF2055.JPG",
+      "DSCF2198.JPG",
+      "DSCF2203.JPG",
+      "DSCF2222.JPG",
+      "DSCF2378.JPG",
+      "DSCF2397.JPG",
+      "DSCF2425.JPG",
+      "DSCF2426.JPG",
+      "DSCF2465.JPG",
+      "DSCF2469.JPG",
+      "DSCF2502.JPG",
+      "DSCF2685.JPG",
+      "DSCF2689.JPG",
+      "DSCF3062.JPG",
+      "DSCF3130.JPG",
+      "DSCF3155.JPG",
+      "DSCF3219.JPG",
+      "DSC_0138.JPG",
+      "Ethan and friends 039.jpg",
+      "IMG_0666.JPG",
+      "IMG_1738.JPG",
+      "IMG_4243.JPG",
+      "IMG_4261.JPG",
+      "IMG_4320.JPG",
+      "IMG_4538.JPG",
+      "IMG_4610.JPG",
+      "IMG_4611.JPG",
+      "IMG_4730.JPG",
+      "IMG_4941.JPG",
+      "IMG_4971.JPG",
+      "IMG_5263.JPG",
+      "IMG_5295.JPG",
+      "IMG_5308.JPG",
+      "IMG_5317.JPG",
+      "IMG_5318.JPG",
+      "IMG_5336.JPG",
+      "IMG_5349.JPG",
+      "IMG_5365.JPG",
+      "IMG_5372.JPG",
+      "IMG_5547.JPG",
+      "IMG_5665.JPG",
+      "IMG_5732.JPG",
+      "IMG_5743.JPG",
+      "IMG_5780.JPG",
+      "IMG_5982.JPG",
+      "IMG_6011.JPG",
+      "IMG_6033.JPG",
+      "IMG_6074.JPG",
+      "IMG_6078.JPG",
+      "IMG_6116.JPG",
+      "IMG_6147.JPG",
+      "mobile phone pictures 034.JPG",
+      "mobile phone pictures 152.jpg",
+      "mums camera 054.JPG",
+      "mums camera 055.JPG",
+      "Picture 1066.jpg",
+      "Picture 1088.jpg",
+      "Picture 658.jpg",
+      "Picture 816.jpg",
+      "Picture 817.jpg",
+      "Picture 997.jpg",
+      "sep-oct15 108.JPG",
+      "sep-oct15 110.JPG",
+      "sep-oct15 111.JPG",
+      "sep-oct15 171.JPG",
+      "sep-oct15 172.JPG"
+    ];
+
+    const gallery = document.getElementById("gallery");
+    const count = document.getElementById("count");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImage = document.getElementById("lightboxImage");
+    const lightboxImgWrap = document.getElementById("lightboxImgWrap");
+    const caption = document.getElementById("caption");
+    const closeBtn = document.getElementById("closeBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const rotateBtn = document.getElementById("rotateBtn");
+    const downloadAllBtn = document.getElementById("downloadAllBtn");
+    let currentIndex = -1;
+    let currentRotation = 0;
+
+    function getImagePath(fileName) {
+      return `${imageFolder}${fileName}`;
+    }
+
+    function applyRotation() {
+      const isTransposed = currentRotation % 180 !== 0;
+      lightboxImage.style.transform = "";
+      if (isTransposed) {
+        const containerW = lightboxImgWrap.offsetWidth;
+        const containerH = lightboxImgWrap.offsetHeight;
+        const rw = lightboxImage.offsetWidth;
+        const rh = lightboxImage.offsetHeight;
+        const scale = Math.min(containerW / rh, containerH / rw, 1);
+        lightboxImage.style.transform = `rotate(${currentRotation}deg) scale(${scale})`;
+      } else {
+        lightboxImage.style.transform = `rotate(${currentRotation}deg)`;
+      }
+    }
+
+    function showImage(index) {
+      currentIndex = (index + images.length) % images.length;
+      const fileName = images[currentIndex];
+      lightboxImage.src = getImagePath(fileName);
+      caption.textContent = fileName;
+      currentRotation = 0;
+      applyRotation();
+    }
+
+    function openLightbox(index) {
+      showImage(index);
+      lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+    }
+
+    function showPrevious() {
+      showImage(currentIndex - 1);
+    }
+
+    function showNext() {
+      showImage(currentIndex + 1);
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+      lightboxImage.src = "";
+      currentRotation = 0;
+      applyRotation();
+      currentIndex = -1;
+    }
+
+    images.forEach((fileName, index) => {
+      const card = document.createElement("article");
+      card.className = "card";
+
+      const img = document.createElement("img");
+      img.className = "thumb";
+      img.src = getImagePath(fileName);
+      img.alt = fileName;
+      img.loading = "lazy";
+      img.addEventListener("click", () => openLightbox(index));
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+
+      const name = document.createElement("p");
+      name.className = "name";
+      name.title = fileName;
+      name.textContent = fileName;
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const downloadLink = document.createElement("a");
+      downloadLink.className = "btn primary";
+      downloadLink.href = getImagePath(fileName);
+      downloadLink.download = fileName;
+      downloadLink.textContent = "Download";
+
+      actions.append(downloadLink);
+      meta.append(name, actions);
+      card.append(img, meta);
+      gallery.append(card);
+    });
+
+    count.textContent = `${images.length} photos`;
+
+    closeBtn.addEventListener("click", closeLightbox);
+    prevBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      showPrevious();
+    });
+    nextBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      showNext();
+    });
+    rotateBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      currentRotation = (currentRotation + 90) % 360;
+      applyRotation();
+    });
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox) {
+        closeLightbox();
+      }
+    });
+
+    downloadAllBtn.addEventListener("click", () => {
+      images.forEach((fileName, i) => {
+        setTimeout(() => {
+          const a = document.createElement("a");
+          a.href = getImagePath(fileName);
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }, i * 300);
+      });
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (!lightbox.classList.contains("open")) {
+        return;
+      }
+
+      if (event.key === "Escape") {
+        closeLightbox();
+      } else if (event.key === "ArrowLeft") {
+        showPrevious();
+      } else if (event.key === "ArrowRight") {
+        showNext();
+      }
+    });
+  </script>
+</body>
+</html>

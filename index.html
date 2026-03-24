@@ -6,7 +6,7 @@
   <title>Photo Gallery</title>
   <style>
     :root {
-      --bg: #f4f6f8;
+      --bg: #f1f3f5;
       --panel: #ffffff;
       --text: #1e2a35;
       --muted: #5f6b76;
@@ -24,7 +24,7 @@
       margin: 0;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       color: var(--text);
-      background: linear-gradient(165deg, #edf2f7, #f9fbfd 50%, #e6eef5);
+      background: var(--bg);
       min-height: 100vh;
     }
 
@@ -50,6 +50,15 @@
       flex-wrap: wrap;
       align-items: center;
       margin-bottom: 18px;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+      flex: 1 1 560px;
+      min-width: 320px;
+      margin-left: 0;
+      align-items: stretch;
     }
 
     .count {
@@ -120,6 +129,42 @@
       background: #fff;
       cursor: pointer;
       flex: 1;
+    }
+
+    .btn.navlink {
+      flex: 0 0 auto;
+      min-width: 230px;
+      padding: 12px 18px;
+      font-size: 0.97rem;
+      border: 2px solid #b7c7d3;
+      background: #ffffff;
+      color: #173145;
+      box-shadow: 0 6px 14px rgba(30, 42, 53, 0.12);
+    }
+
+    .btn.page-switch {
+      flex: 1 1 280px;
+      width: auto;
+    }
+
+    .btn.navlink:hover {
+      filter: none;
+      background: #f6f9fc;
+      border-color: #9eb5c5;
+      transform: translateY(-1px);
+    }
+
+    .btn.toolbar-download {
+      flex: 0 0 auto;
+      min-width: 170px;
+      padding: 12px 16px;
+      font-size: 0.92rem;
+    }
+
+    .bottom-page-nav {
+      display: flex;
+      justify-content: center;
+      margin: 18px 0 0;
     }
 
     .btn.primary {
@@ -271,6 +316,22 @@
         flex-direction: column;
       }
 
+      .toolbar-actions {
+        width: 100%;
+        margin-left: 0;
+        flex-direction: column;
+      }
+
+      .btn.navlink,
+      .btn.toolbar-download {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .btn.page-switch {
+        width: 100%;
+      }
+
       .nav {
         width: 38px;
         height: 38px;
@@ -293,10 +354,16 @@
 
     <div class="toolbar">
       <span class="count" id="count"></span>
-      <button class="btn primary" id="downloadAllBtn">&#8659; Download All</button>
+      <div class="toolbar-actions">
+        <a class="btn navlink page-switch" href="new-photos.html">Page 2</a>
+        <button class="btn primary toolbar-download" id="downloadAllBtn">&#8659; Download All</button>
+      </div>
     </div>
 
     <section class="gallery" id="gallery"></section>
+    <div class="bottom-page-nav">
+      <a class="btn navlink page-switch" href="new-photos.html">Page 2</a>
+    </div>
   </main>
 
   <div class="lightbox" id="lightbox" aria-hidden="true">
